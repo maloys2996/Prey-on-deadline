@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Добавить участника{% endblock %}
+{% block content %}
+  <h1>Добавить участника в комнату: {{ room.name }}</h1>
+  <form method="POST">
+    {{ form.hidden_tag() }}
+    <p>
+      {{ form.username.label }}<br>
+      {{ form.username(size=32) }}
+    </p>
+    <p>
+      {{ form.can_set_deadlines() }} {{ form.can_set_deadlines.label }}
+    </p>
+    <p>{{ form.submit() }}</p>
+  </form>
+{% endblock %}
