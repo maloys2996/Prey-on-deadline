@@ -187,7 +187,7 @@ def profile():
             filename = secure_filename(form.avatar.data.filename)
             avatar_path = 'app/static/uploads/' + filename
             form.avatar.data.save(avatar_path)
-            current_user.avatar = 'uploads/' + filename  # Относительный путь из папки static
+            current_user.avatar = 'uploads/' + filename
         db.session.commit()
         flash("Профиль обновлен.")
         return redirect(url_for('main.profile'))

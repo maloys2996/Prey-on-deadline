@@ -10,8 +10,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
 
-    about = db.Column(db.Text, default="")               # Новое поле: информация о пользователе
-    avatar = db.Column(db.String(140), default="default.jpg")  # Новое поле: путь к аватарке
+    about = db.Column(db.Text, default="")
+    avatar = db.Column(db.String(140), default="uploads/default.jpg")
 
     rooms_owned = db.relationship('Room', backref='owner', lazy='dynamic')
     rooms = db.relationship('RoomUser', back_populates='user', cascade="all, delete-orphan")
