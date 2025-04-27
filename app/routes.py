@@ -14,6 +14,13 @@ bp = Blueprint('main', __name__)
 
 @bp.route('/')
 def index():
+    if current_user.is_authenticated:
+        rooms = (Room.query
+                 .filter(RoomUser.user_id == current_user.id)
+                 .join(RoomUser, Room.id == RoomUser.room_id)
+                 .all())
+    else:
+        rooms = []
     rooms = Room.query.all()
     return render_template('index.html', rooms=rooms)
 
@@ -82,6 +89,10 @@ def create_room():
 @login_required
 def room_detail(room_id):
     room = Room.query.get_or_404(room_id)
+    membership = RoomUser.query.filter_by(room_id=room.id, user_id=current_user.id).first()
+    if not membership:
+        flash('Вы не состоите в этой комнате.')
+        return redirect(url_for('main.index'))
     deadlines = room.deadlines.order_by(Deadline.due_date.asc()).all()
     participants = [ru.user for ru in room.users]
     form = MessageForm()
@@ -200,3 +211,8 @@ def profile():
 def user_profile(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('user_profile.html', user=user)
+
+
+@bp.route('/hello')
+def hello():
+    return render_template('hello.html')
