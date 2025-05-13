@@ -310,8 +310,3 @@ def profile():
 def user_profile(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('user_profile.html', user=user)
-
-
-@bp.route('/hello')
-def hello():
-    return render_template('hello.html')
