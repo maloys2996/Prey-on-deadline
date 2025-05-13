@@ -1,63 +1,95 @@
-{% extends "base.html" %}
-{% block title %}Комната: {{ room.name }}{% endblock %}
-{% block content %}
-  <h1>Комната: {{ room.name }}</h1>
-  <p>Создатель: <a href="{{ url_for('main.user_profile', user_id=room.owner.id) }}">{{ room.owner.username }}</a></p>
-  
-  <h2>Участники</h2>
-  <ul>
+{% extends "base.html" %} {% block title %}Комната: {{ room.name }}{% endblock %} {% block content %}
+<h1>Комната: {{ room.name }}</h1>
+<p>Создатель: <a href="{{ url_for('main.user_profile', user_id=room.owner.id) }}">{{ room.owner.username }}</a></p>
+
+<h2>Участники</h2>
+<ul>
     {% for participant in participants %}
-      <li class="participant">
-        <a href="{{ url_for('main.user_profile', user_id=participant.id) }}" class="participant-link">
-          {{ participant.username }}
-        </a>
-      </li>
+    <li class="participant">
+        <a href="{{ url_for('main.user_profile', user_id=participant.id) }}" class="participant-link"> {{
+            participant.username }} </a>
+    </li>
     {% endfor %}
-  </ul>
-  <p><a href="{{ url_for('main.add_participant', room_id=room.id) }}">Добавить участника</a></p>
-  
-  
-  <h2>Дедлайны</h2>
-  {% if deadlines %}
+</ul>
+<p><a href="{{ url_for('main.add_participant', room_id=room.id) }}">Добавить участника</a></p>
+
+<h2>Дедлайны</h2>
+
+
+<h3>Завершённые ({{ completed|length }})</h3>
+<details>
+    {% if completed %}
     <ul>
-      {% for deadline in deadlines %}
-        <li>
-          {{ deadline.description }} — {{ deadline.due_date.strftime('%Y-%m-%d %H:%M:%S') }}
-          {% if deadline.for_team %}
-            (Для всей команды)
-          {% else %}
-            (Для: <a href="{{ url_for('main.user_profile', user_id=deadline.assigned_to_id) }}">ID: {{ deadline.assigned_to_id }}</a>)
-          {% endif %}
+        {% for d in completed %}
+        <li class="{{ 'failed' if d.status=='failed' else 'completed' }}">
+            {{ d.description }} — для
+            {% if d.for_team %}всей команды{% else %}{{ d.assigned_to.username }}{% endif %}
+            — {{ d.due_date.strftime('%Y-%m-%d %H:%M') }} {% if d.status=='failed' %}(Провален){% endif %}
+            {% if member.can_set_deadlines %}
+            <a href="{{ url_for('main.edit_deadline', room_id=room.id, dl_id=d.id) }}">
+                Редактировать
+            </a>
+            {% endif %}
         </li>
-      {% endfor %}
+        {% endfor %}
     </ul>
-  {% else %}
-    <p>Нет дедлайнов</p>
-  {% endif %}
-  
-  <h2>Чат</h2>
-  <div id="chat">
+    {% else %}
+    <p>Нет завершённых дедлайнов</p>
+    {% endif %}
+</details>
+
+<h3>Скоро истекают ({{ soon|length }})</h3>
+<ul class="soon-list">
+    {% for d in soon %}
+    <li>{{ d.description }} — для
+        {% if d.for_team %}всей команды{% else %}{{ d.assigned_to.username }}{% endif %}
+        — {{ d.due_date.strftime('%Y-%m-%d %H:%M') }}
+        {% if member.can_set_deadlines %}
+        <a href="{{ url_for('main.edit_deadline', room_id=room.id, dl_id=d.id) }}">
+            Редактировать
+        </a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+<h3>Все остальные ({{ later|length }})</h3>
+<ul>
+    {% for d in later %}
+    <li>{{ d.description }} — для
+        {% if d.for_team %}всей команды{% else %}{{ d.assigned_to.username }}{% endif %}
+        — {{ d.due_date.strftime('%Y-%m-%d %H:%M') }}
+        {% if member.can_set_deadlines %}
+        <a href="{{ url_for('main.edit_deadline', room_id=room.id, dl_id=d.id) }}">
+            Редактировать
+        </a>
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+
+
+<h2>Чат</h2>
+<div id="chat">
     {% for message in messages %}
-      <div class="chat-message">
-        <img src="{{ url_for('static', filename=message.sender.avatar) }}" alt="Avatar" class="chat-avatar">
+    <div class="chat-message">
+        <img src="{{ url_for('static', filename=message.sender.avatar) }}" alt="Avatar" class="chat-avatar" />
         <span class="chat-user">
-          <a href="{{ url_for('main.user_profile', user_id=message.sender.id) }}">
-            {{ message.sender.username }}
-          </a>
+            <a href="{{ url_for('main.user_profile', user_id=message.sender.id) }}"> {{ message.sender.username }} </a>
         </span>:
         <span class="chat-content">{{ message.content }}</span>
         <small class="chat-timestamp">({{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }})</small>
-      </div>
+    </div>
     {% endfor %}
-  </div>
-  <form method="POST" action="{{ url_for('main.post_message', room_id=room.id) }}">
+</div>
+<form method="POST" action="{{ url_for('main.post_message', room_id=room.id) }}">
     {{ form.hidden_tag() }}
     <p>
-      {{ form.content.label }}<br>
-      {{ form.content(rows=3, cols=50) }}
+        {{ form.content.label }}<br />
+        {{ form.content(rows=3, cols=50) }}
     </p>
     <p>{{ form.submit() }}</p>
-  </form>
-  
-  <p><a href="{{ url_for('main.set_deadline', room_id=room.id) }}">Установить дедлайн</a></p>
+</form>
+
+<p><a href="{{ url_for('main.set_deadline', room_id=room.id) }}">Установить дедлайн</a></p>
 {% endblock %}

@@ -6,6 +6,7 @@ from config import Config
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = 'main.login'
+login_manager.login_message = "Пожалуйста, войдите, чтобы получить доступ к этой странице."
 
 
 def create_app():

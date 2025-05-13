@@ -5,9 +5,9 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Room, RoomUser, Deadline, Message
 from app.forms import (RegistrationForm, LoginForm, RoomCreationForm, DeadlineForm,
-                       AddParticipantForm, MessageForm, ProfileForm)
+                       AddParticipantForm, MessageForm, ProfileForm, EditDeadlineForm)
 
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 
 bp = Blueprint('main', __name__)
 
@@ -89,16 +89,31 @@ def create_room():
 @login_required
 def room_detail(room_id):
     room = Room.query.get_or_404(room_id)
-    membership = RoomUser.query.filter_by(room_id=room.id, user_id=current_user.id).first()
-    if not membership:
+    member = RoomUser.query.filter_by(room_id=room.id, user_id=current_user.id).first()
+    if not member:
         flash('Вы не состоите в этой комнате.')
         return redirect(url_for('main.index'))
-    deadlines = room.deadlines.order_by(Deadline.due_date.asc()).all()
+
+    now = datetime.now()
+    threshold = now + timedelta(hours=24)
+
+    all_dl = room.deadlines.order_by(Deadline.due_date.asc()).all()
+    completed = [d for d in all_dl if d.status != 'active' or d.due_date < now]
+    active = [d for d in all_dl if d.status == 'active']
+    overdue = [d for d in active if d.due_date < now]
+    soon = [d for d in active if d.due_date >= now and now <= d.due_date <= threshold]
+    later = [d for d in active if d.due_date >= now and d.due_date > threshold]
+
     participants = [ru.user for ru in room.users]
     form = MessageForm()
     messages = room.messages.order_by(Message.timestamp.asc()).all()
-    return render_template('room_detail.html', room=room, deadlines=deadlines,
-                           participants=participants, form=form, messages=messages)
+
+    print('completed:', completed, '\nsoon:', soon, '\nlater:', later)
+
+    return render_template('room_detail.html',
+                           room=room, completed=completed, soon=soon, later=later,
+                           participants=participants, form=form, messages=messages,
+                           member=member)
 
 
 @bp.route('/room/<int:room_id>/set_deadline', methods=['GET', 'POST'])
@@ -109,7 +124,9 @@ def set_deadline(room_id):
     if not room_user or not room_user.can_set_deadlines:
         flash('У вас нет прав для установки дедлайнов в этой комнате.')
         return redirect(url_for('main.room_detail', room_id=room.id))
+
     form = DeadlineForm()
+
     if form.validate_on_submit():
         deadline_date = form.due_date.data
         deadline_time = form.due_time.data if form.due_time.data is not None else time(0, 0)
@@ -147,7 +164,89 @@ def set_deadline(room_id):
                     db.session.commit()
                     flash('Дедлайн установлен для пользователя.')
                     return redirect(url_for('main.room_detail', room_id=room.id))
-    return render_template('set_deadline.html', form=form, room=room)
+    participants = [ru.user for ru in room.users]
+    return render_template('set_deadline.html', form=form, room=room, participants=participants)
+
+
+@bp.route('/room/<int:room_id>/edit_deadline/<int:dl_id>', methods=['GET', 'POST'])
+@login_required
+def edit_deadline(room_id, dl_id):
+    room = Room.query.get_or_404(room_id)
+    room_user = RoomUser.query.filter_by(room_id=room_id,
+                                         user_id=current_user.id).first()
+    if not room_user or not room_user.can_set_deadlines:
+        flash('У вас нет прав для изменения дедлайна в этой комнате.')
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    deadline = Deadline.query.get_or_404(dl_id)
+    form = EditDeadlineForm()
+    if request.method == 'GET':
+        form.description.data = deadline.description
+        form.due_date.data = deadline.due_date.date()
+        form.due_time.data = deadline.due_date.time()
+        form.apply_to_all.data = deadline.for_team
+    participants = [ru.user for ru in room.users]
+
+    if form.validate_on_submit():
+        deadline.description = form.description.data
+        deadline_date = form.due_date.data
+        deadline_time = form.due_time.data or time(0, 0)
+        deadline.due_date = datetime.combine(deadline_date, deadline_time)
+
+        print(1, form.apply_to_all.data)
+        if form.apply_to_all.data:
+            deadline.for_team = True
+            deadline.assigned_to_id = None
+            print(2)
+        else:
+            print(3)
+            if not form.assigned_to.data:
+                print(4)
+                flash('Пожалуйста, укажите имя пользователя или выберите назначение для всей команды.')
+                return render_template('edit_deadline.html',
+                                       form=form, room=room, dl=deadline,
+                                       participants=participants)
+
+            assigned_user = User.query.filter_by(username=form.assigned_to.data).first()
+            if not assigned_user:
+                flash('Пользователь не найден.')
+                return render_template('edit_deadline.html',
+                                       form=form, room=room, dl=deadline,
+                                       participants=participants)
+            print(5)
+
+            print(assigned_user.id)
+
+            deadline.for_team = False
+            deadline.assigned_to_id = assigned_user.id
+
+        # Статус
+        deadline.status = form.status.data
+
+        db.session.commit()
+        flash('Дедлайн обновлён.')
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    return render_template('edit_deadline.html',
+                           form=form, room=room, dl=deadline,
+                           participants=participants)
+
+
+@bp.route('/deadline/<int:dl_id>/status', methods=['POST'])
+@login_required
+def update_deadline_status(dl_id):
+    dl = Deadline.query.get_or_404(dl_id)
+    # проверка прав
+    ru = RoomUser.query.filter_by(room_id=dl.room_id, user_id=current_user.id).first()
+    if not ru or not ru.can_set_deadlines:
+        flash('У вас нет прав на изменение статуса дедлайна.')
+        return redirect(url_for('main.room_detail', room_id=dl.room_id))
+
+    new_status = request.form.get('status')
+    if new_status in ('completed', 'failed'):
+        dl.status = new_status
+        db.session.commit()
+    return redirect(url_for('main.room_detail', room_id=dl.room_id))
 
 
 @bp.route('/room/<int:room_id>/add_participant', methods=['GET', 'POST'])

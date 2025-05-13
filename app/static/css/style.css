@@ -6,6 +6,30 @@ body {
   color: #333;
 }
 
+html, body {
+  height: 100%;
+}
+
+.page-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.page-content {
+  flex: 1;
+}
+
+.footer {
+  background-color: #f1f1f1;
+  color: #555;
+  text-align: center;
+  padding: 15px 0;
+  font-size: 0.9em;
+  border-top: 1px solid #ddd;
+}
+
+
 nav {
   background-color: #4CAF50;
   padding: 10px;
@@ -32,12 +56,10 @@ nav a:hover {
   margin: 20px auto;
 }
 
-/* Стили для заголовков */
 h1, h2, h3 {
   color: #333;
 }
 
-/* Стили для списков */
 ul {
   list-style-type: none;
   padding: 0;
@@ -50,7 +72,6 @@ ul li {
   border-radius: 4px;
 }
 
-/* Стили для форм */
 form p {
   margin-bottom: 15px;
 }
@@ -83,7 +104,6 @@ button:hover {
   background-color: #45a049;
 }
 
-/* Стили для чата */
 #chat {
   border: 1px solid #ccc;
   padding: 10px;
@@ -97,7 +117,6 @@ button:hover {
   margin: 5px 0;
 }
 
-/* Стили для сообщений об успехе и ошибках */
 ul.flash-messages {
   list-style-type: none;
   padding: 0;
@@ -144,7 +163,6 @@ nav {
   border-radius: 50%;
 }
 
-/* Стили для чата */
 .chat-message {
   margin-bottom: 10px;
   display: flex;
@@ -157,7 +175,7 @@ nav {
   margin-right: 8px;
 }
 .chat-user a {
-  text-decoration: none;  /* Убираем подчеркивание */
+  text-decoration: none;
   color: inherit;
   font-weight: bold;
 }
@@ -170,14 +188,20 @@ nav {
   font-size: 0.9em;
 }
 
-/* Стили для участников комнаты */
 .participant-link {
-  text-decoration: none; /* Убираем подчеркивание */
+  text-decoration: none;
   color: inherit;
   font-weight: bold;
 }
 
-/* Если потребуется общее правило для ссылок, можно добавить: */
 a {
   text-decoration: none;
+}
+
+.failed {
+  background-color: #f8d7da;
+}
+
+.soon-list li {
+  background-color: #fff3cd;
 }

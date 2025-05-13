@@ -1,6 +1,6 @@
 from flask_wtf.file import FileField, FileAllowed
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, TextAreaField
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, DateField, TimeField, TextAreaField, SelectField
 from wtforms.validators import DataRequired, Email, EqualTo, Optional
 
 
@@ -29,11 +29,24 @@ class RoomCreationForm(FlaskForm):
 
 class DeadlineForm(FlaskForm):
     description = StringField('Описание дедлайна', validators=[DataRequired()])
-    due_date = DateField('Дата выполнения (ГГГГ-ММ-ДД)', validators=[DataRequired()], format='%Y-%m-%d')
-    due_time = TimeField('Время выполнения (необязательно, ЧЧ:ММ)', format='%H:%M', validators=[Optional()])
-    assigned_to = StringField('Пользователь (username)')  # Не обязательное поле
+    due_date = DateField('Дата выполнения', validators=[DataRequired()], format='%Y-%m-%d')
+    due_time = TimeField('Время выполнения (необязательно)', format='%H:%M', validators=[Optional()])
+    apply_to_all = BooleanField('Назначить для всей команды', default=True)
+    assigned_to = StringField('Пользователь', validators=[Optional()])
+    submit = SubmitField('Сохранить')
+
+
+class EditDeadlineForm(FlaskForm):
+    description = StringField('Описание дедлайна', validators=[DataRequired()])
+    due_date = DateField('Дата выполнения', validators=[DataRequired()], format='%Y-%m-%d')
+    due_time = TimeField('Время выполнения (необязательно)', format='%H:%M', validators=[Optional()])
     apply_to_all = BooleanField('Назначить для всей команды')
-    submit = SubmitField('Назначить дедлайн')
+    assigned_to = StringField('Пользователь', validators=[Optional()])
+    status = SelectField('Статус', choices=[
+        ('active', 'Активен'),
+        ('completed', 'Завершён'),
+        ('failed', 'Провален')])
+    submit = SubmitField('Сохранить')
 
 
 class AddParticipantForm(FlaskForm):

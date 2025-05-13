@@ -1,22 +1,22 @@
 {% extends "base.html" %}
 {% block title %}Главная{% endblock %}
 {% block content %}
-  <h1>Добро пожаловать!</h1>
-  {% if current_user.is_authenticated %}
-    <p>Привет, {{ current_user.username }}!</p>
-    {% if rooms %}
-      <h2>Список комнат</h2>
-      <ul>
-        {% for room in rooms %}
-          <li>
-            <a href="{{ url_for('main.room_detail', room_id=room.id) }}">{{ room.name }}</a>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Нет доступных комнат.</p>
-    {% endif %}
-  {% else %}
-    <p>Пожалуйста, войдите или зарегистрируйтесь.</p>
-  {% endif %}
+<h1>Добро пожаловать!</h1>
+{% if current_user.is_authenticated %}
+<p>Привет, {{ current_user.username }}!</p>
+{% if rooms %}
+<h2>Список комнат</h2>
+<ul>
+    {% for room in rooms %}
+    <li>
+        <a href="{{ url_for('main.room_detail', room_id=room.id) }}">{{ room.name }}</a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Нет доступных комнат.</p>
+{% endif %}
+{% else %}
+<p>Пожалуйста, войдите или зарегистрируйтесь.</p>
+{% endif %}
 {% endblock %}

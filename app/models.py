@@ -53,9 +53,12 @@ class Deadline(db.Model):
     description = db.Column(db.String(256), nullable=False)
     due_date = db.Column(db.DateTime, nullable=False)
     room_id = db.Column(db.Integer, db.ForeignKey('room.id'))
-    assigned_to_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     created_by_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     for_team = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(10), default='active')
+    assigned_to_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+
+    assigned_to = db.relationship('User', foreign_keys=[assigned_to_id])
 
 
 class Message(db.Model):

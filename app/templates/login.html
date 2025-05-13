@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block title %}Вход{% endblock %}
 {% block content %}
-  <h1>Вход</h1>
-  <form method="POST">
+<h1>Вход</h1>
+<form method="POST">
     {{ form.hidden_tag() }}
     <p>
-      {{ form.username.label }}<br>
-      {{ form.username(size=32) }}
+        {{ form.username.label }}<br>
+        {{ form.username(size=32) }}
     </p>
     <p>
-      {{ form.password.label }}<br>
-      {{ form.password(size=32) }}
+        {{ form.password.label }}<br>
+        {{ form.password(size=32) }}
     </p>
     <p>
-      {{ form.remember() }} {{ form.remember.label }}
+        {{ form.remember() }} {{ form.remember.label }}
     </p>
     <p>{{ form.submit() }}</p>
-  </form>
+</form>
 {% endblock %}

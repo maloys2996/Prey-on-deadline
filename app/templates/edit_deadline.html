@@ -1,7 +1,7 @@
 {% extends "base.html" %}
-{% block title %}Установить дедлайн{% endblock %}
+{% block title %}Редактировать дедлайн{% endblock %}
 {% block content %}
-<h1>Установить дедлайн для комнаты: {{ room.name }}</h1>
+<h1>Редактировать дедлайн</h1>
 <form method="POST">
     {{ form.hidden_tag() }}
     <p>{{ form.description.label }}<br>{{ form.description(size=64) }}</p>
@@ -19,11 +19,9 @@
             {% endfor %}
         </select>
     </p>
+    <p>{{ form.status.label }}<br>{{ form.status() }}</p>
     <p>{{ form.submit() }}</p>
 </form>
-<p>Если время не указано, по умолчанию будет установлено 00:00.</p>
-<p>Если хотите назначить дедлайн для всей команды, отметьте "Назначить для всей команды" и поле "Пользователь" можно
-    оставить пустым.</p>
 <script>
     const cb = document.querySelector('input[name="apply_to_all"]');
     const ab = document.getElementById('assigned-block');
