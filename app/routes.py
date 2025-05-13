@@ -21,7 +21,6 @@ def index():
                  .all())
     else:
         rooms = []
-    rooms = Room.query.all()
     return render_template('index.html', rooms=rooms)
 
 
