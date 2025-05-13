@@ -205,3 +205,9 @@ a {
 .soon-list li {
   background-color: #fff3cd;
 }
+
+#group-action {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}

@@ -3,15 +3,28 @@
 <p>Создатель: <a href="{{ url_for('main.user_profile', user_id=room.owner.id) }}">{{ room.owner.username }}</a></p>
 
 <h2>Участники</h2>
-<ul>
+<ul class="participants-list">
     {% for participant in participants %}
-    <li class="participant">
-        <a href="{{ url_for('main.user_profile', user_id=participant.id) }}" class="participant-link"> {{
-            participant.username }} </a>
+    <li>
+        <a href="{{ url_for('main.user_profile', user_id=participant.id) }}">
+            {{ participant.username }}
+        </a>
+        {% if current_user == room.owner and participant.id != current_user.id %}
+        <form method="POST" action="{{ url_for('main.remove_participant', room_id=room.id, user_id=participant.id) }}"
+            class="remove-form" style="display:inline">
+            {{ remove_form.hidden_tag() }}
+            <button type="submit" onclick="return confirm('Удалить участника?')">
+                Удалить
+            </button>
+        </form>
+        {% endif %}
     </li>
     {% endfor %}
 </ul>
+
+{% if current_user == room.owner %}
 <p><a href="{{ url_for('main.add_participant', room_id=room.id) }}">Добавить участника</a></p>
+{% endif %}
 
 <h2>Дедлайны</h2>
 
@@ -88,8 +101,22 @@
         {{ form.content.label }}<br />
         {{ form.content(rows=3, cols=50) }}
     </p>
-    <p>{{ form.submit() }}</p>
+    <div id="group-action">
+        <p>{{ form.submit() }}</p>
 </form>
 
-<p><a href="{{ url_for('main.set_deadline', room_id=room.id) }}">Установить дедлайн</a></p>
+{% if member.can_set_deadlines %}
+<form method="POST" action="{{ url_for('main.set_deadline', room_id=room.id) }}">
+    <button type="submit">Установить дедлайн</button>
+</form>
+{% endif %}
+
+{% if current_user == room.owner %}
+<form method="POST" action="{{ url_for('main.delete_room', room_id=room.id) }}"
+    onsubmit="return confirm('Вы уверены? Удалится вся комната.')">
+    {{ delete_form.hidden_tag() }}
+    <button type="submit">Удалить комнату</button>
+</form>
+</div>
+{% endif %}
 {% endblock %}

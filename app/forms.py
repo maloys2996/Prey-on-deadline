@@ -64,3 +64,7 @@ class ProfileForm(FlaskForm):
     about = TextAreaField('О себе', validators=[Optional()])
     avatar = FileField('Аватар', validators=[FileAllowed(['jpg', 'png', 'gif'], 'Только изображения!')])
     submit = SubmitField('Сохранить')
+
+
+class DeleteForm(FlaskForm):
+    submit = SubmitField('Удалить')

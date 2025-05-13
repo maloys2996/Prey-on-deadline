@@ -1,5 +1,5 @@
 /.venv
-/instance
+# /instance
 /test
 /__pycache__
 /app/__pycache__

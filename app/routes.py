@@ -5,7 +5,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Room, RoomUser, Deadline, Message
 from app.forms import (RegistrationForm, LoginForm, RoomCreationForm, DeadlineForm,
-                       AddParticipantForm, MessageForm, ProfileForm, EditDeadlineForm)
+                       AddParticipantForm, MessageForm, ProfileForm, EditDeadlineForm,
+                       DeleteForm)
 
 from datetime import datetime, time, timedelta
 
@@ -112,7 +113,7 @@ def room_detail(room_id):
     return render_template('room_detail.html',
                            room=room, completed=completed, soon=soon, later=later,
                            participants=participants, form=form, messages=messages,
-                           member=member)
+                           member=member, delete_form=DeleteForm(), remove_form=DeleteForm())
 
 
 @bp.route('/room/<int:room_id>/set_deadline', methods=['GET', 'POST'])
@@ -309,3 +310,48 @@ def profile():
 def user_profile(user_id):
     user = User.query.get_or_404(user_id)
     return render_template('user_profile.html', user=user)
+
+
+@bp.route('/room/<int:room_id>/remove_participant/<int:user_id>', methods=['POST'])
+@login_required
+def remove_participant(room_id, user_id):
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    room = Room.query.get_or_404(room_id)
+    if room.owner != current_user:
+        flash('Только владелец может удалять участников.')
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    if user_id == current_user.id:
+        flash('Нельзя удалить себя из комнаты.')
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    ru = RoomUser.query.filter_by(room_id=room_id, user_id=user_id).first()
+    if ru:
+        db.session.delete(ru)
+        db.session.commit()
+        flash('Участник удалён.')
+    else:
+        flash('Пользователь не является участником.')
+
+    return redirect(url_for('main.room_detail', room_id=room_id))
+
+
+@bp.route('/room/<int:room_id>/delete', methods=['POST'])
+@login_required
+def delete_room(room_id):
+    form = DeleteForm()
+    if not form.validate_on_submit():
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    room = Room.query.get_or_404(room_id)
+    if room.owner != current_user:
+        flash('Только владелец может удалять комнату.')
+        return redirect(url_for('main.room_detail', room_id=room_id))
+
+    db.session.delete(room)
+    db.session.commit()
+    flash('Комната удалена.')
+    return redirect(url_for('main.index'))
